@@ -35,8 +35,6 @@
             position: relative;
             cursor: pointer;
             transition: transform 0.3s ease;
-            opacity: 0; /* Inicialmente invisível */
-            animation: fadeIn 0.5s ease-in-out forwards; /* Animação de fade-in */
         }
 
         .character-card:hover {
@@ -111,11 +109,6 @@
             background-color: #0056b3;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
         @keyframes openCapsule {
             0% { transform: rotate(0deg); }
             50% { transform: rotate(180deg); }
@@ -140,7 +133,7 @@
             { name: "Goku (Dragon Ball)", rarity: "secret", image: "https://preview.redd.it/an-ultra-instinct-goku-artwork-i-made-back-in-summer-2022-v0-3lj773qea7cb1.png?width=1080&crop=smart&auto=webp&s=df39b0ff8950e2248f4921cd234cf505b1e0c2f7" },
             { name: "Naruto Uzumaki (Naruto)", rarity: "mythic", image: "https://images.saymedia-content.com/.image/ar_1:1%2Cc_fill%2Ccs_srgb%2Cq_auto:eco%2Cw_1200/MTg1MDMwNDE0NzUzODAxOTY1/how-weak-or-strong-is-naruto-without-kurama.png" },
             { name: "Luffy (One Piece)", rarity: "legendary", image: "https://tm.ibxk.com.br/2023/08/08/08142450075192.jpg" },
-            { name: "Eren Yeager (Attack on Titan)", rarity: "legendary", image: "https://prod-printler-front-as.azurewebsites.net/media/photo/188111.jpg?mode=crop&width=638&height=900&rnd=0.0.1" },
+            { name: "Eren Yeager (Attack on TitaEn)", rarity: "legendary", image: "https://prod-printler-front-as.azurewebsites.net/media/photo/188111.jpg?mode=crop&width=638&height=900&rnd=0.0.1" },
             { name: "Sung Jin-Woo (Solo Leveling)", rarity: "legendary", image: "https://images-wixmp-ed30a86b8c4ca887773594c2.wixmp.com/f/6339fa38-c77b-410a-b0e3-ba28abb4e6e0/dh6l4ae-842c1183-ecd5-4356-a687-9daf13bd93a2.jpg/v1/fill/w_1280,h_720,q_75,strp/sung_jin_woo___solo_leveling_wallpaper_by_gamestead_dh6l4ae-fullview.jpg?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1cm46YXBwOjdlMGQxODg5ODIyNjQzNzNhNWYwZDQxNWVhMGQyNmUwIiwiaXNzIjoidXJuOmFwcDo3ZTBkMTg4OTgyMjY0MzczYTVmMGQ0MTVlYTBkMjZlMCIsIm9iaiI6W1t7ImhlaWdodCI6Ijw9NzIwIiwicGF0aCI6IlwvZlwvNjMzOWZhMzgtYzc3Yi00MTBhLWIwZTMtYmEyOGFiYjRlNmUwXC9kaDZsNGFlLTg0MmMxMTgzLWVjZDUtNDM1Ni1hNjg3LTlkYWYxM2JkOTNhMi5qcGciLCJ3aWR0aCI6Ijw9MTI4MCJ9XV0sImF1ZCI6WyJ1cm46c2VydmljZTppbWFnZS5vcGVyYXRpb25zIl19.2YjLy5jHyoju9WVbSmdcwm8JXCga9xHng1uXPWoBlLQ" },
             { name: "Saitama (One Punch Man)", rarity: "epic", image: "https://wallpapers.com/images/featured/one-punch-man-wgbs1b3mcd3l28tq.jpg" },
             { name: "Levi Ackerman (Attack on Titan)", rarity: "epic", image: "https://rollingstone.com.br/media/uploads/levi-ackerman-attack-on-titan-melhores-momentos-foto-reproducao.jpg" },
@@ -174,43 +167,22 @@
             }
         }
 
-        // Variáveis globais
-        let currentIndex = 0;
-        let drawnCharacters = [];
-        let hasSecretOrMythic = false;
-
         // Função para abrir o banner
         function openBanner() {
             const banner = document.getElementById("banner");
             const openButton = document.getElementById("open-banner");
             banner.innerHTML = ""; // Limpa o banner anterior
-            currentIndex = 0; // Reinicia o índice
-            drawnCharacters = []; // Limpa a lista de personagens sorteados
-            hasSecretOrMythic = false; // Reinicia a flag
 
             // Toca o som da cápsula
             const sound = document.getElementById("capsule-sound");
             sound.play();
 
             // Sorteia 10 personagens
+            let hasSecretOrMythic = false;
             for (let i = 0; i < 10; i++) {
-                drawnCharacters.push(getRandomCharacter());
-            }
-
-            // Desabilita o botão
-            openButton.disabled = true;
-
-            // Mostra o primeiro personagem
-            showNextCharacter();
-        }
-
-        // Função para mostrar o próximo personagem
-        function showNextCharacter() {
-            const banner = document.getElementById("banner");
-            if (currentIndex < drawnCharacters.length) {
-                const character = drawnCharacters[currentIndex];
+                const character = getRandomCharacter();
                 const card = document.createElement("div");
-                card.classList.add("character-card", character.rarity);
+                card.classList.add("character-card", character.rarity, "capsule-animation");
                 card.innerHTML = `
                     <img src="${character.image}" alt="${character.name}">
                     <div class="rarity">${character.name}</div>
@@ -218,31 +190,28 @@
                 banner.appendChild(card);
 
                 // Verifica se o personagem é secreto ou mítico
-                if (character.rarity === "secret" || character.rarity === "mythic") {
-                    hasSecretOrMythic = true;
-                }
-
-                currentIndex++;
-            } else {
-                // Reabilita o botão após mostrar todos os personagens
-                const openButton = document.getElementById("open-banner");
-                openButton.disabled = false;
-
-                // Desabilita o botão por 3 segundos se um secreto ou mítico for obtido
-                if (hasSecretOrMythic) {
-                    openButton.disabled = true;
-                    setTimeout(() => {
-                        openButton.disabled = false;
-                    }, 3000);
+                if (character.rarity === "secret") {
+                    hasSecret = true;
                 }
             }
+
+            // Desabilita o botão por 3 segundos se um secreto ou mítico for obtido
+            if (hasSecret) {
+                openButton.disabled = true;
+                setTimeout(() => {
+                    openButton.disabled = false;
+                }, 3000);
+            }
+
+            // Remove a animação após 1 segundo
+            setTimeout(() => {
+                const cards = document.querySelectorAll(".character-card");
+                cards.forEach(card => card.classList.remove("capsule-animation"));
+            }, 1000);
         }
 
         // Evento de clique no botão
         document.getElementById("open-banner").addEventListener("click", openBanner);
-
-        // Evento de clique em qualquer lugar da tela para avançar
-        document.addEventListener("click", showNextCharacter);
     </script>
 </body>
 </html>
