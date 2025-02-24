@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Banner de Personagens</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1a1a1a;
+            color: white;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+        }
+
+        h1 {
+            margin-top: 20px;
+        }
+
+        .banner {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            padding: 20px;
+        }
+
+        .character-card {
+            width: 150px;
+            height: 200px;
+            border: 2px solid;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            opacity: 0; /* Inicialmente invisível */
+            animation: fadeIn 0.5s ease-in-out forwards; /* Animação de fade-in */
+        }
+
+        .character-card:hover {
+            transform: scale(1.1);
+        }
+
+        .character-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .character-card .rarity {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 5px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .secret {
+            border-color: red;
+            background: linear-gradient(45deg, black, red);
+        }
+
+        .mythic {
+            border-color: transparent;
+            background: linear-gradient(45deg, violet, indigo, blue, green, yellow, orange, red);
+        }
+
+        .legendary {
+            border-color: gold;
+            background: linear-gradient(45deg, gold, yellow);
+        }
+
+        .epic {
+            border-color: purple;
+            background: linear-gradient(45deg, purple, violet);
+        }
+
+        .rare {
+            border-color: blue;
+            background: linear-gradient(45deg, blue, cyan);
+        }
+
+        .common {
+            border-color: silver;
+            background: linear-gradient(45deg, silver, gray);
+        }
+
+        button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        button:disabled {
+            background-color: #555;
+            cursor: not-allowed;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes openCapsule {
+            0% { transform: rotate(0deg); }
+            50% { transform: rotate(180deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .capsule-animation {
+            animation: openCapsule 1s ease-in-out;
+        }
+    </style>
+</head>
+<body>
+    <h1>Banner de Personagens</h1>
+    <button id="open-banner">Abrir Banner (10 Personagens)</button>
+    <div class="banner" id="banner"></div>
+
+    <audio id="capsule-sound" src="wow.mp3"></audio>
+
+    <script>
+        // Lista de personagens baseada nos 10 animes mais famosos
+        const characters = [
+            { name: "Goku (Dragon Ball)", rarity: "secret", image: "https://preview.redd.it/an-ultra-instinct-goku-artwork-i-made-back-in-summer-2022-v0-3lj773qea7cb1.png?width=1080&crop=smart&auto=webp&s=df39b0ff8950e2248f4921cd234cf505b1e0c2f7" },
+            { name: "Naruto Uzumaki (Naruto)", rarity: "mythic", image: "https://images.saymedia-content.com/.image/ar_1:1%2Cc_fill%2Ccs_srgb%2Cq_auto:eco%2Cw_1200/MTg1MDMwNDE0NzUzODAxOTY1/how-weak-or-strong-is-naruto-without-kurama.png" },
+            { name: "Luffy (One Piece)", rarity: "legendary", image: "https://tm.ibxk.com.br/2023/08/08/08142450075192.jpg" },
+            { name: "Eren Yeager (Attack on Titan)", rarity: "legendary", image: "https://prod-printler-front-as.azurewebsites.net/media/photo/188111.jpg?mode=crop&width=638&height=900&rnd=0.0.1" },
+            { name: "Sung Jin-Woo (Solo Leveling)", rarity: "legendary", image: "https://images-wixmp-ed30a86b8c4ca887773594c2.wixmp.com/f/6339fa38-c77b-410a-b0e3-ba28abb4e6e0/dh6l4ae-842c1183-ecd5-4356-a687-9daf13bd93a2.jpg/v1/fill/w_1280,h_720,q_75,strp/sung_jin_woo___solo_leveling_wallpaper_by_gamestead_dh6l4ae-fullview.jpg?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1cm46YXBwOjdlMGQxODg5ODIyNjQzNzNhNWYwZDQxNWVhMGQyNmUwIiwiaXNzIjoidXJuOmFwcDo3ZTBkMTg4OTgyMjY0MzczYTVmMGQ0MTVlYTBkMjZlMCIsIm9iaiI6W1t7ImhlaWdodCI6Ijw9NzIwIiwicGF0aCI6IlwvZlwvNjMzOWZhMzgtYzc3Yi00MTBhLWIwZTMtYmEyOGFiYjRlNmUwXC9kaDZsNGFlLTg0MmMxMTgzLWVjZDUtNDM1Ni1hNjg3LTlkYWYxM2JkOTNhMi5qcGciLCJ3aWR0aCI6Ijw9MTI4MCJ9XV0sImF1ZCI6WyJ1cm46c2VydmljZTppbWFnZS5vcGVyYXRpb25zIl19.2YjLy5jHyoju9WVbSmdcwm8JXCga9xHng1uXPWoBlLQ" },
+            { name: "Saitama (One Punch Man)", rarity: "epic", image: "https://wallpapers.com/images/featured/one-punch-man-wgbs1b3mcd3l28tq.jpg" },
+            { name: "Levi Ackerman (Attack on Titan)", rarity: "epic", image: "https://rollingstone.com.br/media/uploads/levi-ackerman-attack-on-titan-melhores-momentos-foto-reproducao.jpg" },
+            { name: "Kirito (Sword Art Online)", rarity: "rare", image: "https://metaleks.com/cdn/shop/files/Kirito-Swordartonline_bcfe2c20-d849-4ca4-a0da-220a48256882.jpg?v=1731397304&width=1531" },
+            { name: "Tanjiro Kamado (Demon Slayer)", rarity: "rare", image: "https://animeflix.com.br/wp-content/uploads/2025/02/Demon-Slayer-696x392.jpg" },
+            { name: "Ash (Pokémon) ANIME DE FEMBOY", rarity: "common", image: "https://steamuserimages-a.akamaihd.net/ugc/2452852111571143303/D4E0B515D14DA84C637BCD441BDBDFB9A4FA51D7/?imw=512&&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=false" },
+            { name: "Edward Elric (Fullmetal Alchemist)", rarity: "common", image: "https://img1.ak.crunchyroll.com/i/spire1/55e5237fa7c3c2cc0853dea0eb69cf871640723691_main.png" }
+        ];
+
+        // Probabilidades de raridade
+        const rarityProbabilities = {
+            secret: 0.2,
+            mythic: 1,
+            legendary: 5,
+            epic: 15,
+            rare: 35,
+            common: 43.9 // Restante
+        };
+
+        // Função para sortear um personagem com base na probabilidade
+        function getRandomCharacter() {
+            const random = Math.random() * 100;
+            let cumulativeProbability = 0;
+
+            for (const [rarity, probability] of Object.entries(rarityProbabilities)) {
+                cumulativeProbability += probability;
+                if (random <= cumulativeProbability) {
+                    const filteredCharacters = characters.filter(char => char.rarity === rarity);
+                    return filteredCharacters[Math.floor(Math.random() * filteredCharacters.length)];
+                }
+            }
+        }
+
+        // Variáveis globais
+        let currentIndex = 0;
+        let drawnCharacters = [];
+        let hasSecretOrMythic = false;
+
+        // Função para abrir o banner
+        function openBanner() {
+            const banner = document.getElementById("banner");
+            const openButton = document.getElementById("open-banner");
+            banner.innerHTML = ""; // Limpa o banner anterior
+            currentIndex = 0; // Reinicia o índice
+            drawnCharacters = []; // Limpa a lista de personagens sorteados
+            hasSecretOrMythic = false; // Reinicia a flag
+
+            // Toca o som da cápsula
+            const sound = document.getElementById("capsule-sound");
+            sound.play();
+
+            // Sorteia 10 personagens
+            for (let i = 0; i < 10; i++) {
+                drawnCharacters.push(getRandomCharacter());
+            }
+
+            // Desabilita o botão
+            openButton.disabled = true;
+
+            // Mostra o primeiro personagem
+            showNextCharacter();
+        }
+
+        // Função para mostrar o próximo personagem
+        function showNextCharacter() {
+            const banner = document.getElementById("banner");
+            if (currentIndex < drawnCharacters.length) {
+                const character = drawnCharacters[currentIndex];
+                const card = document.createElement("div");
+                card.classList.add("character-card", character.rarity);
+                card.innerHTML = `
+                    <img src="${character.image}" alt="${character.name}">
+                    <div class="rarity">${character.name}</div>
+                `;
+                banner.appendChild(card);
+
+                // Verifica se o personagem é secreto ou mítico
+                if (character.rarity === "secret" || character.rarity === "mythic") {
+                    hasSecretOrMythic = true;
+                }
+
+                currentIndex++;
+            } else {
+                // Reabilita o botão após mostrar todos os personagens
+                const openButton = document.getElementById("open-banner");
+                openButton.disabled = false;
+
+                // Desabilita o botão por 3 segundos se um secreto ou mítico for obtido
+                if (hasSecretOrMythic) {
+                    openButton.disabled = true;
+                    setTimeout(() => {
+                        openButton.disabled = false;
+                    }, 3000);
+                }
+            }
+        }
+
+        // Evento de clique no botão
+        document.getElementById("open-banner").addEventListener("click", openBanner);
+
+        // Evento de clique em qualquer lugar da tela para avançar
+        document.addEventListener("click", showNextCharacter);
+    </script>
+</body>
+</html>
